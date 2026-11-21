@@ -27,9 +27,9 @@ export default function AuthLayout({ title, subtitle, children }) {
                   secure place.
                </p>
             </div>
-            <p className="text-sm text-indigo-200">
+            {/* <p className="text-sm text-indigo-200">
                © {new Date().getFullYear()} DBK VMS
-            </p>
+            </p> */}
             <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10" />
             <div className="absolute -bottom-32 right-10 h-80 w-80 rounded-full bg-white/10" />
          </div>
