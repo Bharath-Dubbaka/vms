@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, use } from "react";
+// import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
    collection,
@@ -23,8 +23,9 @@ import {
 } from "../../components/ui";
 import CandidateCard from "./CandidateCard";
 
-export default function RequirementDetail() {
-   const { id } = useParams();
+export default function RequirementDetail({ params }) {
+   //    const { id } = useParams();
+   const { id } = use(params);
    const { user, profile, loading } = useUser();
    const { cands, ready, reload } = useData(profile);
    const [req, setReq] = useState(null);
