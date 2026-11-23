@@ -1,3 +1,5 @@
+//app/requirements/[id]/page.js
+
 import { Suspense } from "react";
 import RequirementDetailClient from "./RequirementDetailClient";
 

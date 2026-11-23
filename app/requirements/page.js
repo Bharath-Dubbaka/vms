@@ -45,6 +45,8 @@ export default function Requirements() {
          openings: Number(form.openings),
          companyId: profile.companyId,
          status: "Open",
+         vendorIds: [],
+
          createdBy: user.email,
          createdAt: serverTimestamp(),
       });
@@ -64,12 +66,14 @@ export default function Requirements() {
          title="Requirements"
          subtitle="All hiring needs for your company"
          actions={
-            <button className={btnPrimary} onClick={() => setShow(!show)}>
-               {show ? "Cancel" : "+ New requirement"}
-            </button>
+            profile.role === "staffing" && (
+               <button className={btnPrimary} onClick={() => setShow(!show)}>
+                  {show ? "Cancel" : "+ New requirement"}
+               </button>
+            )
          }
       >
-         {show && (
+         {show && profile.role === "staffing" && (
             <Card className="p-5">
                <form onSubmit={add} className="grid gap-3 md:grid-cols-6">
                   <input

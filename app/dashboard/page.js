@@ -1,3 +1,4 @@
+//app/dashboard/page.js
 "use client";
 import Link from "next/link";
 import { useUser } from "../../lib/useUser";
@@ -56,9 +57,11 @@ export default function Dashboard() {
          title={`Welcome, ${user.email.split("@")[0]}`}
          subtitle={`${company} · Hiring overview`}
          actions={
-            <Link href="/requirements?new=1" className={btnPrimary}>
-               + New requirement
-            </Link>
+            profile.role === "staffing" && (
+               <Link href="/requirements?new=1" className={btnPrimary}>
+                  + New requirement
+               </Link>
+            )
          }
       >
          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

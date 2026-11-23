@@ -1,6 +1,9 @@
+//app/requirements/[id]/RequirementDetailClient.js
+
 "use client";
 import { useEffect, useState, use } from "react";
 // import { useParams } from "next/navigation";
+import VendorAssign from "./VendorAssign";
 import Link from "next/link";
 import {
    collection,
@@ -32,11 +35,19 @@ export default function RequirementDetail({ params }) {
    const [show, setShow] = useState(false);
    const [form, setForm] = useState({ name: "", email: "", phone: "" });
 
-   useEffect(() => {
-      if (!profile) return;
+   // useEffect(() => {
+   //    if (!profile) return;
+   //    getDoc(doc(db, "requirements", id)).then(
+   //       (r) => r.exists() && setReq({ id: r.id, ...r.data() }),
+   //    );
+   // }, [profile, id]);
+   function loadReq() {
       getDoc(doc(db, "requirements", id)).then(
          (r) => r.exists() && setReq({ id: r.id, ...r.data() }),
       );
+   }
+   useEffect(() => {
+      if (profile) loadReq();
    }, [profile, id]);
 
    async function addCandidate(e) {
@@ -44,7 +55,8 @@ export default function RequirementDetail({ params }) {
       const ref = await addDoc(collection(db, "candidates"), {
          ...form,
          requirementId: id,
-         companyId: profile.companyId,
+         companyId: req.companyId,
+         vendorId: profile.companyId,
          status: STATUSES[0],
          createdBy: user.email,
          createdAt: serverTimestamp(),
@@ -100,7 +112,9 @@ export default function RequirementDetail({ params }) {
                </Card>
             ))}
          </div>
-
+         {profile.role === "staffing" && (
+            <VendorAssign req={req} onChange={loadReq} />
+         )}
          {show && (
             <Card className="p-5">
                <form

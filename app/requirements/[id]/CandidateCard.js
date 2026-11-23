@@ -1,3 +1,5 @@
+//app/requirements/[id]/CandidateCard.js
+
 "use client";
 import { useState } from "react";
 import {
@@ -66,7 +68,7 @@ export default function CandidateCard({ cand, user, profile, onChange }) {
       setMsg("Uploading...");
       try {
          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-         const path = `bgv/${profile.companyId}/${cand.id}/${Date.now()}_${safeName}`;
+         const path = `bgv/${cand.companyId}/${cand.id}/${Date.now()}_${safeName}`;
          await uploadBytes(ref(storage, path), file);
          await addDoc(collection(db, "candidates", cand.id, "documents"), {
             docType,
@@ -99,22 +101,31 @@ export default function CandidateCard({ cand, user, profile, onChange }) {
                   {[cand.email, cand.phone].filter(Boolean).join(" · ") ||
                      "No contact details"}
                </p>
+               <p className="text-xs text-slate-400">
+                  Submitted by {cand.vendorId}
+               </p>
             </div>
-            <input
-               className={`${inputCls} hidden max-w-[200px] md:block`}
-               placeholder="Note (optional)"
-               value={note}
-               onChange={(e) => setNote(e.target.value)}
-            />
-            <select
-               value={cand.status}
-               onChange={(e) => changeStatus(e.target.value)}
-               className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ring-inset outline-none ${STATUS_STYLES[cand.status]}`}
-            >
-               {STATUSES.map((s) => (
-                  <option key={s}>{s}</option>
-               ))}
-            </select>
+            {profile.role === "staffing" && (
+               <input
+                  className={`${inputCls} hidden max-w-[200px] md:block`}
+                  placeholder="Note (optional)"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+               />
+            )}
+            {profile.role === "staffing" ? (
+               <select
+                  value={cand.status}
+                  onChange={(e) => changeStatus(e.target.value)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ring-inset outline-none ${STATUS_STYLES[cand.status]}`}
+               >
+                  {STATUSES.map((s) => (
+                     <option key={s}>{s}</option>
+                  ))}
+               </select>
+            ) : (
+               <Badge>{cand.status}</Badge>
+            )}
             <button
                onClick={toggle}
                className="text-sm text-indigo-600 hover:underline"
