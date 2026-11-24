@@ -2,7 +2,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 // import { useSearchParams } from "next/navigation";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+   collection,
+   addDoc,
+   query,
+   where,
+   getDocs,
+   serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useUser } from "../../lib/useUser";
 import { useData, countBy } from "../../lib/useData";
@@ -29,6 +36,20 @@ export default function Requirements() {
       openings: 1,
       location: "",
    });
+   const [vendors, setVendors] = useState([]);
+   const [picked, setPicked] = useState([]);
+
+   useEffect(() => {
+      getDocs(
+         query(collection(db, "companies"), where("type", "==", "vendor")),
+      ).then((s) => setVendors(s.docs.map((d) => ({ id: d.id, ...d.data() }))));
+   }, []);
+
+   function togglePick(id) {
+      setPicked(
+         picked.includes(id) ? picked.filter((x) => x !== id) : [...picked, id],
+      );
+   }
 
    //    useEffect(() => {
    //       if (params.get("new")) setShow(true);
@@ -45,13 +66,14 @@ export default function Requirements() {
          openings: Number(form.openings),
          companyId: profile.companyId,
          status: "Open",
-         vendorIds: [],
+         vendorIds: picked,
 
          createdBy: user.email,
          createdAt: serverTimestamp(),
       });
       setForm({ ...form, title: "", location: "" });
       setShow(false);
+      setPicked([]);
       reload();
    }
 
@@ -73,7 +95,7 @@ export default function Requirements() {
             )
          }
       >
-         {show && profile.role === "staffing" && (
+         {/* {show && profile.role === "staffing" && (
             <Card className="p-5">
                <form onSubmit={add} className="grid gap-3 md:grid-cols-6">
                   <input
@@ -117,8 +139,101 @@ export default function Requirements() {
                   <button className={btnPrimary}>Create</button>
                </form>
             </Card>
-         )}
+         )} */}
+         {show && profile.role === "staffing" && (
+            <Card className="p-5">
+               <form onSubmit={add} className="space-y-4">
+                  <div className="grid gap-3 md:grid-cols-5">
+                     <input
+                        className={`${inputCls} md:col-span-2`}
+                        placeholder="Title (e.g. Senior Electrician)"
+                        required
+                        value={form.title}
+                        onChange={(e) =>
+                           setForm({ ...form, title: e.target.value })
+                        }
+                     />
+                     <select
+                        className={inputCls}
+                        value={form.category}
+                        onChange={(e) =>
+                           setForm({ ...form, category: e.target.value })
+                        }
+                     >
+                        {CATEGORIES.map((c) => (
+                           <option key={c}>{c}</option>
+                        ))}
+                     </select>
+                     <input
+                        className={inputCls}
+                        type="number"
+                        min="1"
+                        placeholder="Openings"
+                        value={form.openings}
+                        onChange={(e) =>
+                           setForm({ ...form, openings: e.target.value })
+                        }
+                     />
+                     <input
+                        className={inputCls}
+                        placeholder="Location"
+                        value={form.location}
+                        onChange={(e) =>
+                           setForm({ ...form, location: e.target.value })
+                        }
+                     />
+                  </div>
 
+                  <div>
+                     <div className="mb-2 flex items-center justify-between">
+                        <p className="text-sm font-medium">Assign to vendors</p>
+                        {vendors.length > 0 && (
+                           <button
+                              type="button"
+                              className="text-sm text-indigo-600 hover:underline"
+                              onClick={() =>
+                                 setPicked(
+                                    picked.length === vendors.length
+                                       ? []
+                                       : vendors.map((v) => v.id),
+                                 )
+                              }
+                           >
+                              {picked.length === vendors.length
+                                 ? "Clear all"
+                                 : "Select all"}
+                           </button>
+                        )}
+                     </div>
+                     <div className="flex flex-wrap gap-3">
+                        {vendors.map((v) => (
+                           <label
+                              key={v.id}
+                              className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                           >
+                              <input
+                                 type="checkbox"
+                                 checked={picked.includes(v.id)}
+                                 onChange={() => togglePick(v.id)}
+                              />
+                              {v.name}
+                           </label>
+                        ))}
+                        {vendors.length === 0 && (
+                           <p className="text-sm text-slate-500">
+                              No vendors yet. Add them in the Vendors tab.
+                           </p>
+                        )}
+                     </div>
+                     <p className="mt-2 text-xs text-slate-500">
+                        Leave empty to assign later.
+                     </p>
+                  </div>
+
+                  <button className={btnPrimary}>Create requirement</button>
+               </form>
+            </Card>
+         )}
          <input
             className={`${inputCls} max-w-xs`}
             placeholder="Search requirements..."
@@ -133,6 +248,7 @@ export default function Requirements() {
                      <th className="px-5 py-3">Requirement</th>
                      <th>Category</th>
                      <th>Location</th>
+                     <th>Vendors</th>
                      <th className="text-center">Openings</th>
                      <th className="text-center">Submitted</th>
                      <th className="text-center">Joined</th>
@@ -154,6 +270,17 @@ export default function Requirements() {
                            </td>
                            <td>{r.category}</td>
                            <td>{r.location || "-"}</td>
+                           <td>
+                              {(r.vendorIds || []).length === 0
+                                 ? "-"
+                                 : (r.vendorIds || [])
+                                      .map(
+                                         (id) =>
+                                            vendors.find((v) => v.id === id)
+                                               ?.name || id,
+                                      )
+                                      .join(", ")}
+                           </td>
                            <td className="text-center">{r.openings}</td>
                            <td className="text-center">{rc.length}</td>
                            <td className="text-center">

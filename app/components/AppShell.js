@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { initials } from "./ui";
+import { useUser } from "../../lib/useUser";
 
 const NAV = [
    { href: "/dashboard", label: "Dashboard", icon: "▦" },
@@ -14,6 +15,16 @@ const NAV = [
 export default function AppShell({ user, title, subtitle, actions, children }) {
    const path = usePathname();
    const router = useRouter();
+
+   const { profile } = useUser();
+   const nav =
+      profile?.role === "staffing"
+         ? [
+              ...NAV.slice(0, 2),
+              { href: "/vendors", label: "Vendors", icon: "👥" },
+              ...NAV.slice(2),
+           ]
+         : NAV;
 
    async function logout() {
       await signOut(auth);
@@ -33,7 +44,7 @@ export default function AppShell({ user, title, subtitle, actions, children }) {
                <span className="text-lg font-semibold">DBK VMS</span>
             </Link>
             <nav className="space-y-1">
-               {NAV.map((n) => {
+               {nav.map((n) => {
                   const active =
                      path === n.href ||
                      (n.href !== "/dashboard" && path.startsWith(n.href));
@@ -69,7 +80,7 @@ export default function AppShell({ user, title, subtitle, actions, children }) {
             {/* mobile top nav */}
             <div className="flex items-center gap-4 bg-slate-900 px-4 py-3 text-sm text-white md:hidden">
                <span className="font-semibold">DBK VMS</span>
-               {NAV.map((n) => (
+               {nav.map((n) => (
                   <Link key={n.href} href={n.href} className="text-slate-300">
                      {n.label}
                   </Link>
